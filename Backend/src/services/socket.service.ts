@@ -69,7 +69,6 @@ class SocketService {
       // Handle bid event
       socket.on('send:bid', async (data) => {
         console.log("send:bid -> Received event send:bid with data = ", data);
-        // Original dummy functionality 
         const { itemId, bidAmount, winninguser, buynow } = data;
         try {
           const item = await Item.findById(itemId);

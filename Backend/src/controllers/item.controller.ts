@@ -35,12 +35,12 @@ export const createItem = async (req: Request, res: Response): Promise<void> => 
 
     const savedItem = await newItem.save();
 
-    // Return response consistent with auth.controller style
+    // Return response
     res.status(201).json(savedItem);
 
   } catch (error) {
     console.error('Create item error:', error);
-    res.status(500).json({ message: 'Internal server error' }); // Consistent error format
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -75,7 +75,6 @@ export const removeItem = async (req: Request, res: Response): Promise<void> => 
     }
   }
 
-  // No response was sent in the original code
   res.status(200).end();
 };
 

@@ -2,6 +2,10 @@ import { Request, Response } from 'express';
 import * as jwt from 'jsonwebtoken';
 import User from '../models/user';
 import config from '../config/config';
+import bcrypt from 'bcryptjs';
+
+const saltRounds = 10;
+
 
 /**
  * Handle user authentication
@@ -20,8 +24,13 @@ export const authenticate = async (req: Request, res: Response): Promise<void> =
 
     // Find user and compare plain text passwords
     const user = await User.findOne({ username });
-    if (!user || user.password !== password) {
-      res.status(401).json({ message: 'Invalid credentials' });
+    if (!user) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+    const passwordIsValid = await bcrypt.compare(password, user.password);
+    if (!passwordIsValid) {
+      res.status(401).json({ message: 'Invalid password' });
       return;
     }
 
@@ -93,14 +102,16 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
     // Create new user 
     const newUser = new User({
-      name: name,
-      email: email,
-      username: username,
-      password: password,
-      latitude: latitude,
-      longitude: longitude,
+      name,
+      email,
+      username,
+      password: hashedPassword,
+      latitude,
+      longitude,
       islogged: false,
     });
 
@@ -108,7 +119,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
     // Generate JWT token
     const token = jwt.sign(
-      { username: savedUser.username, password: savedUser.password },
+      { username: savedUser.username, id: savedUser._id },
       config.jwtSecret,
       { expiresIn: '1h' }
     );
